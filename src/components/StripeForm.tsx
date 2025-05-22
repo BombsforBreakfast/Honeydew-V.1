@@ -1,60 +1,80 @@
 'use client';
 
+import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { useState } from 'react';
-import {
-  PaymentElement,
-  useStripe,
-  useElements
-} from '@stripe/react-stripe-js';
 
-export default function CheckoutForm() {
+export default function StripeForm({
+  clientSecret,
+  onComplete,
+  finalAmount,
+}: {
+  clientSecret: string;
+  finalAmount: number;
+  onComplete: () => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
-
-  const [message, setMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [saveCard, setSaveCard] = useState(false);
+  const [tip, setTip] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!stripe || !elements) return;
 
-    setLoading(true);
+    setIsProcessing(true);
 
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: window.location.href, // optional
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: elements.getElement(CardElement)!,
+        billing_details: {},
       },
-      redirect: 'if_required',
+      setup_future_usage: saveCard ? 'on_session' : undefined,
     });
 
-    if (error) {
-      setMessage(error.message || 'Payment failed');
-    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      setMessage('💰 Payment successful!');
-    } else {
-      setMessage('Something went wrong.');
+    if (result.error) {
+      alert(result.error.message);
+      setIsProcessing(false);
+    } else if (result.paymentIntent?.status === 'succeeded') {
+      alert('✅ Payment successful!');
+      onComplete();
     }
-
-    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement />
+    <form onSubmit={handleSubmit} className="bg-white rounded shadow p-4 mt-4 max-w-lg mx-auto">
+      <h2 className="text-2xl font-bold text-green-800 mb-2">💳 Pay Now</h2>
+      <p className="mb-2 text-sm text-gray-600">Total: ${finalAmount + tip} (incl. fees)</p>
+
+      <label className="block mb-2 font-medium">Add a Tip (optional)</label>
+      <input
+        type="number"
+        className="w-full border p-2 rounded mb-3"
+        placeholder="Tip amount ($)"
+        value={tip}
+        onChange={(e) => setTip(Number(e.target.value))}
+        min={0}
+      />
+
+      <CardElement className="p-2 border rounded mb-3" />
+
+      <label className="block text-sm mb-3">
+        <input
+          type="checkbox"
+          className="mr-2"
+          checked={saveCard}
+          onChange={(e) => setSaveCard(e.target.checked)}
+        />
+        Save card for future use
+      </label>
+
       <button
         type="submit"
-        disabled={loading || !stripe || !elements}
-        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
+        disabled={!stripe || isProcessing}
+        className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
       >
-        {loading ? 'Processing...' : 'Pay Now'}
+        {isProcessing ? 'Processing...' : 'Pay Now'}
       </button>
-      {message && (
-        <div className="text-sm text-center mt-2 text-red-500">
-          {message}
-        </div>
-      )}
     </form>
   );
 }

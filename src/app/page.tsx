@@ -23,6 +23,8 @@ export default function UserDashboard() {
   const [ratingInput, setRatingInput] = useState<{ [taskId: string]: number }>({});
   const [submittedTasks, setSubmittedTasks] = useState<{ [taskId: string]: boolean }>({});
   const [tipAmount, setTipAmount] = useState<{ [taskId: string]: number }>({});
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
 
   useEffect(() => {
   fetchData(); // initial load
@@ -45,6 +47,7 @@ export default function UserDashboard() {
 
     setTasks(fetchedTasks || []);
   };
+
 
   const handleTaskSubmit = async () => {
     const { data: { user } } = await supabase.auth.getUser();

@@ -6,7 +6,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 export async function POST(req: NextRequest) {
-  const { amount, tip } = await req.json();
+  const body = await req.json();
+  const { amount, tip } = body
 
   if (!amount || typeof amount !== 'number') {
     return NextResponse.json({ error: 'Invalid or missing amount' }, { status: 400 });
@@ -22,8 +23,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
-  } catch (error: any) {
-    console.error('Stripe error:', error);
+  } catch (err) {
+    console.error('Stripe error:', err);
     return NextResponse.json({ error: 'Stripe Payment Intent failed' }, { status: 500 });
   }
 }
