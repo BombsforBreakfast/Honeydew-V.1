@@ -12,7 +12,7 @@ import {
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
-type Task = {
+export type Task = {
   id: string;
   text: string;
   zip: string;
@@ -163,7 +163,7 @@ export default function UserDashboard() {
   proposed_rate: number;
 }
 
-const StripeForm = ({ task }: { task: TaskType }) => {
+const StripeForm = ({ task }: { task: Task }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [processing, setProcessing] = useState(false);
