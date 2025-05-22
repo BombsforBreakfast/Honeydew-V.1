@@ -159,19 +159,6 @@ export default function UserDashboard() {
     fetchData();
   };
 
-  interface Task {
-  id: string;
-  bid_rate?: number;
-  proposed_rate: number;
-  text: string;
-  status: string;
-  has_tools?: boolean;
-  task_photo_url?: string;
-  helper_id?: string;
-  start_time?: string;
-  end_time?: string;
-}
-
 const StripeForm = ({ task }: { task: Task }) => {
     const stripe = useStripe();
     const elements = useElements();
