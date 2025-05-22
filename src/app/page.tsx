@@ -156,7 +156,14 @@ export default function UserDashboard() {
     setSubmittedTasks(prev => ({ ...prev, [taskId]: true }));
     fetchData();
   };
-  const StripeForm = ({ task }: { task: any }) => {
+
+  interface TaskType {
+  id: string;
+  bid_rate?: number;
+  proposed_rate: number;
+}
+
+const StripeForm = ({ task }: { task: TaskType }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [processing, setProcessing] = useState(false);
