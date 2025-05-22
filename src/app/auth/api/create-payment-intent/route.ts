@@ -5,9 +5,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-04-30.basil',
 });
 
+type PaymentRequestBody = {
+  amount: number;
+  tip?: number;
+};
+
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { amount, tip } = body
+  const body = (await req.json()) as PaymentRequestBody;
+  const { amount, tip } = body;
 
   if (!amount || typeof amount !== 'number') {
     return NextResponse.json({ error: 'Invalid or missing amount' }, { status: 400 });

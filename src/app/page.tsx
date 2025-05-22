@@ -23,7 +23,7 @@ export default function UserDashboard() {
   const [ratingInput, setRatingInput] = useState<{ [taskId: string]: number }>({});
   const [submittedTasks, setSubmittedTasks] = useState<{ [taskId: string]: boolean }>({});
   const [tipAmount, setTipAmount] = useState<{ [taskId: string]: number }>({});
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  
 
 
   useEffect(() => {
