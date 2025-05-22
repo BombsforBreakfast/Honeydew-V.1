@@ -12,8 +12,24 @@ import {
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
+type Task = {
+  id: string;
+  text: string;
+  zip: string;
+  status: string;
+  user_id: string;
+  helper_id: string | null;
+  proposed_rate: number;
+  bid_rate?: number;
+  address?: string;
+  start_time?: string;
+  end_time?: string;
+  has_tools?: boolean;
+  task_photo_url?: string;
+};
+
 export default function UserDashboard() {
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [taskText, setTaskText] = useState('');
   const [proposedRate, setProposedRate] = useState(20);
   const [customAddress, setCustomAddress] = useState('');
@@ -23,19 +39,12 @@ export default function UserDashboard() {
   const [ratingInput, setRatingInput] = useState<{ [taskId: string]: number }>({});
   const [submittedTasks, setSubmittedTasks] = useState<{ [taskId: string]: boolean }>({});
   const [tipAmount, setTipAmount] = useState<{ [taskId: string]: number }>({});
-  
-
 
   useEffect(() => {
-  fetchData(); // initial load
-
-  const interval = setInterval(() => {
-    fetchData(); // refresh every 5 seconds
-  }, 5000);
-
-  return () => clearInterval(interval); // cleanup
-}, []);
-
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, []);
   const fetchData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -47,7 +56,6 @@ export default function UserDashboard() {
 
     setTasks(fetchedTasks || []);
   };
-
 
   const handleTaskSubmit = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -73,7 +81,7 @@ export default function UserDashboard() {
       }
 
       const { data } = supabase.storage.from('task-photos').getPublicUrl(fileName);
-      taskPhotoUrl = data?.publicUrl;
+      taskPhotoUrl = data?.publicUrl || null;
     }
 
     const taskPayload = {
@@ -139,13 +147,15 @@ export default function UserDashboard() {
 
     await supabase
       .from('profiles')
-      .update({ average_rating: parseFloat(average.toFixed(2)), rating_count: ratings.length })
+      .update({
+        average_rating: parseFloat(average.toFixed(2)),
+        rating_count: ratings.length,
+      })
       .eq('id', task.helper_id);
 
     setSubmittedTasks(prev => ({ ...prev, [taskId]: true }));
     fetchData();
   };
-
   const StripeForm = ({ task }: { task: any }) => {
     const stripe = useStripe();
     const elements = useElements();
@@ -168,7 +178,6 @@ export default function UserDashboard() {
       });
 
       const { clientSecret } = await response.json();
-      console.log('🔑 clientSecret:', clientSecret);
 
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
@@ -206,11 +215,13 @@ export default function UserDashboard() {
         <div className="text-center mb-6">
           <h1 className="text-4xl font-bold text-green-800">Honeydew</h1>
           <div className="my-3">
-            <img src="/logo.png" alt="Honeydew Logo" className="mx-auto h-40
-            " />
+            <img
+              src="/logo.png"
+              alt="Honeydew Logo"
+              className="mx-auto h-40"
+            />
           </div>
         </div>
-
         {/* Submit a Task */}
         <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
           <h2 className="text-2xl font-bold text-green-800 mb-4">Submit a Task</h2>
@@ -266,11 +277,16 @@ export default function UserDashboard() {
           <h2 className="text-xl font-bold text-green-800 mb-4">Your Tasks</h2>
           <ul className="space-y-4">
             {tasks.map((task) => (
-              <li key={task.id} className="bg-white border border-green-200 rounded p-4 shadow-sm">
+              <li
+                key={task.id}
+                className="bg-white border border-green-200 rounded p-4 shadow-sm"
+              >
                 <p className="font-semibold text-green-900">{task.text}</p>
                 <p className="text-sm text-gray-600">Status: {task.status}</p>
                 <p className="text-sm text-gray-600">Rate: ${task.bid_rate ?? task.proposed_rate}/hr</p>
-                {task.has_tools && <p className="text-sm text-green-700">✔ Tools Provided</p>}
+                {task.has_tools && (
+                  <p className="text-sm text-green-700">✔ Tools Provided</p>
+                )}
                 {task.task_photo_url && (
                   <img
                     src={task.task_photo_url}
@@ -286,7 +302,6 @@ export default function UserDashboard() {
                     onConfirm={() => handleConfirmHelper(task.id)}
                   />
                 )}
-
                 {task.status === 'confirmed' && task.start_time && !task.end_time && (
                   <p className="text-sm mt-2 text-yellow-700">⏳ Your Task is In Progress</p>
                 )}
@@ -410,3 +425,4 @@ function HelperBidView({
     </div>
   );
 }
+
