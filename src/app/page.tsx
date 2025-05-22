@@ -12,7 +12,7 @@ import {
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
-export type Task = {
+type Task = {
   id: string;
   text: string;
   zip: string;
