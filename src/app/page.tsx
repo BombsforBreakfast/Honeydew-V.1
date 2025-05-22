@@ -1,5 +1,7 @@
 'use client';
 
+//triggering vercel deployment test
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseclient';
 import { loadStripe } from '@stripe/stripe-js';
