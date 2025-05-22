@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Stripe error:', err);
     return NextResponse.json({ error: 'Stripe Payment Intent failed' }, { status: 500 });
   }
